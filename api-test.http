@@ -1,0 +1,473 @@
+# Logística SaaS 2026 — API Tests
+# Compatible with VS Code REST Client extension
+# Install: https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+#
+# Usage:
+#   1. Open this file in VS Code
+#   2. Click "Send Request" above any request
+#   3. Set @token after login and reuse in subsequent requests
+#
+# Base URL: http://localhost:8000/api/v1
+
+@baseUrl = http://localhost:8000/api/v1
+@contentType = application/json
+
+# After login, copy the access_token value here:
+@token = YOUR_ACCESS_TOKEN_HERE
+
+# Seed data IDs (available after running seed-data.sql):
+@companyId = 550e8400-e29b-41d4-a716-446655440000
+@adminUserId = 550e8400-e29b-41d4-a716-446655440001
+@vehicleId1 = 550e8400-e29b-41d4-a716-446655440010
+@vehicleId2 = 550e8400-e29b-41d4-a716-446655440011
+@driverId1 = 550e8400-e29b-41d4-a716-446655440020
+@driverId2 = 550e8400-e29b-41d4-a716-446655440021
+@deliveryId1 = 550e8400-e29b-41d4-a716-446655440030
+@deliveryId2 = 550e8400-e29b-41d4-a716-446655440031
+@deliveryId3 = 550e8400-e29b-41d4-a716-446655440032
+@routeId1 = 550e8400-e29b-41d4-a716-446655440050
+
+###############################################################
+# AUTH
+###############################################################
+
+### Register — Criar nova empresa e usuário admin
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "company_name": "TechLogistics Inc",
+  "email": "admin@techlogistics.com",
+  "password": "Admin@123456",
+  "full_name": "Administrador TechLogistics"
+}
+
+###
+
+### Login — Autenticar e obter token JWT
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@techlogistics.com",
+  "password": "Admin@123456"
+}
+
+###
+
+### Login Operador
+# @name loginOperador
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "operador@techlogistics.com",
+  "password": "Operador@123456"
+}
+
+###
+
+### Refresh Token — Renovar access_token expirado
+POST {{baseUrl}}/auth/refresh
+Content-Type: {{contentType}}
+
+{
+  "refresh_token": "YOUR_REFRESH_TOKEN_HERE"
+}
+
+###
+
+### Logout — Invalidar token
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{token}}
+
+###
+
+### Get Current User — Informações do usuário autenticado
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+###############################################################
+# COMPANIES
+###############################################################
+
+###
+
+### Get Company — Obter dados da empresa atual
+GET {{baseUrl}}/companies/me
+Authorization: Bearer {{token}}
+
+###
+
+### Update Company — Atualizar dados da empresa
+PATCH {{baseUrl}}/companies/me
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "name": "TechLogistics Inc (Atualizado)",
+  "settings": {
+    "timezone": "America/Sao_Paulo",
+    "currency": "BRL",
+    "distance_unit": "km"
+  }
+}
+
+###############################################################
+# DELIVERIES
+###############################################################
+
+###
+
+### List Deliveries — Listar todas as entregas pendentes
+GET {{baseUrl}}/deliveries?status=pending&page=1&limit=10
+Authorization: Bearer {{token}}
+
+###
+
+### List Deliveries (filtros) — Filtrar por prioridade e data
+GET {{baseUrl}}/deliveries?priority=high&status=pending&date_from=2026-01-01
+Authorization: Bearer {{token}}
+
+###
+
+### Get Delivery — Obter uma entrega específica
+GET {{baseUrl}}/deliveries/{{deliveryId1}}
+Authorization: Bearer {{token}}
+
+###
+
+### Create Delivery — Criar nova entrega
+# @name createDelivery
+POST {{baseUrl}}/deliveries
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "customer_name": "Empresa Teste Ltda",
+  "customer_phone": "(11) 99000-1234",
+  "customer_email": "contato@empresateste.com.br",
+  "address": "Av. Paulista, 2000 - Bela Vista, São Paulo, SP, 01310-200",
+  "address_complement": "8º Andar",
+  "latitude": -23.5630,
+  "longitude": -46.6543,
+  "weight_kg": 20.5,
+  "volume_m3": 0.3,
+  "priority": "high",
+  "notes": "Entregar ao responsável. Não deixar com porteiro.",
+  "scheduled_date": "2026-01-25"
+}
+
+###
+
+### Update Delivery Status — Atualizar status para entregue
+PATCH {{baseUrl}}/deliveries/{{deliveryId1}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "status": "delivered",
+  "notes": "Entregue com sucesso. Assinatura: Maria Oliveira"
+}
+
+###
+
+### Update Delivery Priority — Alterar prioridade
+PATCH {{baseUrl}}/deliveries/{{deliveryId2}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "priority": "urgent",
+  "notes": "Cliente solicitou urgência"
+}
+
+###
+
+### Delete Delivery — Cancelar/deletar uma entrega
+DELETE {{baseUrl}}/deliveries/{{deliveryId3}}
+Authorization: Bearer {{token}}
+
+###
+
+### Import CSV — Importar múltiplas entregas de arquivo CSV
+# Requer um arquivo local entregas.csv no formato:
+# customer_name,customer_phone,address,weight_kg,priority,notes
+POST {{baseUrl}}/deliveries/import
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="entregas.csv"
+Content-Type: text/csv
+
+customer_name,customer_phone,address,weight_kg,priority,notes
+"João Importado","(11) 91111-2222","Rua Augusta 500, Consolação, São Paulo",10.0,medium,""
+"Maria Importada","(11) 93333-4444","Av. Brasil 100, Centro, São Paulo",5.0,low,"Frágil"
+------FormBoundary--
+
+###############################################################
+# ROUTES
+###############################################################
+
+###
+
+### List Routes — Listar todas as rotas
+GET {{baseUrl}}/routes?page=1&limit=10
+Authorization: Bearer {{token}}
+
+###
+
+### List Routes (ativas) — Filtrar por status
+GET {{baseUrl}}/routes?status=in_progress
+Authorization: Bearer {{token}}
+
+###
+
+### Get Route — Obter detalhes de uma rota específica
+GET {{baseUrl}}/routes/{{routeId1}}
+Authorization: Bearer {{token}}
+
+###
+
+### Generate Optimized Route — Gerar rota otimizada (PRINCIPAL!)
+# @name generateRoute
+POST {{baseUrl}}/routes/generate
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "driver_id": "{{driverId1}}",
+  "vehicle_id": "{{vehicleId1}}",
+  "delivery_ids": [
+    "{{deliveryId1}}",
+    "{{deliveryId2}}",
+    "{{deliveryId3}}"
+  ],
+  "start_location": {
+    "latitude": -23.5480,
+    "longitude": -46.6565,
+    "address": "Depósito Central — Rua da Consolação, 1000, São Paulo, SP"
+  },
+  "optimization": "distance"
+}
+
+###
+
+### Generate Route (por tempo) — Otimizar por tempo estimado
+POST {{baseUrl}}/routes/generate
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "driver_id": "{{driverId2}}",
+  "vehicle_id": "{{vehicleId2}}",
+  "delivery_ids": [
+    "550e8400-e29b-41d4-a716-446655440033",
+    "550e8400-e29b-41d4-a716-446655440035",
+    "550e8400-e29b-41d4-a716-446655440036"
+  ],
+  "start_location": {
+    "latitude": -23.5480,
+    "longitude": -46.6565,
+    "address": "Depósito Central"
+  },
+  "optimization": "time"
+}
+
+###
+
+### Update Route Status — Iniciar rota
+PATCH {{baseUrl}}/routes/{{routeId1}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "status": "in_progress"
+}
+
+###
+
+### Complete Route — Finalizar rota
+PATCH {{baseUrl}}/routes/{{routeId1}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "status": "completed"
+}
+
+###############################################################
+# VEHICLES
+###############################################################
+
+###
+
+### List Vehicles — Listar todos os veículos
+GET {{baseUrl}}/vehicles
+Authorization: Bearer {{token}}
+
+###
+
+### List Available Vehicles — Listar veículos disponíveis
+GET {{baseUrl}}/vehicles?status=available
+Authorization: Bearer {{token}}
+
+###
+
+### Get Vehicle — Obter um veículo específico
+GET {{baseUrl}}/vehicles/{{vehicleId1}}
+Authorization: Bearer {{token}}
+
+###
+
+### Create Vehicle — Cadastrar novo veículo
+# @name createVehicle
+POST {{baseUrl}}/vehicles
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Moto 1",
+  "plate": "MOT-0001",
+  "type": "motorcycle",
+  "capacity_kg": 30,
+  "volume_m3": 0.1,
+  "fuel_type": "gasoline",
+  "fuel_consumption_km_l": 30.0,
+  "year": 2023,
+  "model": "Honda CG 160",
+  "color": "Vermelho"
+}
+
+###
+
+### Update Vehicle — Atualizar veículo
+PATCH {{baseUrl}}/vehicles/{{vehicleId1}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "status": "maintenance",
+  "notes": "Revisão de 30.000 km — Oficina Mecânica Silva"
+}
+
+###
+
+### Delete Vehicle — Remover veículo
+DELETE {{baseUrl}}/vehicles/{{vehicleId2}}
+Authorization: Bearer {{token}}
+
+###############################################################
+# DRIVERS
+###############################################################
+
+###
+
+### List Drivers — Listar todos os motoristas
+GET {{baseUrl}}/drivers
+Authorization: Bearer {{token}}
+
+###
+
+### List Available Drivers — Listar motoristas disponíveis
+GET {{baseUrl}}/drivers?status=available
+Authorization: Bearer {{token}}
+
+###
+
+### Get Driver — Obter um motorista específico
+GET {{baseUrl}}/drivers/{{driverId1}}
+Authorization: Bearer {{token}}
+
+###
+
+### Create Driver — Cadastrar novo motorista
+# @name createDriver
+POST {{baseUrl}}/drivers
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "full_name": "Ana Rodrigues",
+  "email": "ana.rodrigues@techlogistics.com",
+  "phone": "(11) 97654-3210",
+  "cnh_number": "55544433322",
+  "cnh_category": "B",
+  "cnh_expiry": "2029-12-31",
+  "notes": "Motorista nova — período de experiência"
+}
+
+###
+
+### Update Driver — Atualizar motorista
+PATCH {{baseUrl}}/drivers/{{driverId1}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "status": "on_route",
+  "current_vehicle_id": "{{vehicleId1}}"
+}
+
+###
+
+### Delete Driver — Remover motorista
+DELETE {{baseUrl}}/drivers/{{driverId2}}
+Authorization: Bearer {{token}}
+
+###############################################################
+# DASHBOARD
+###############################################################
+
+###
+
+### Get Today Metrics — KPIs do dia atual
+GET {{baseUrl}}/dashboard/metrics?period=today
+Authorization: Bearer {{token}}
+
+###
+
+### Get Week Metrics — KPIs da semana
+GET {{baseUrl}}/dashboard/metrics?period=week
+Authorization: Bearer {{token}}
+
+###
+
+### Get Month Metrics — KPIs do mês
+GET {{baseUrl}}/dashboard/metrics?period=month
+Authorization: Bearer {{token}}
+
+###
+
+### Get Custom Period Metrics — KPIs de período customizado
+GET {{baseUrl}}/dashboard/metrics?date_from=2026-01-01&date_to=2026-01-31
+Authorization: Bearer {{token}}
+
+###
+
+### Get Delivery Heatmap — Mapa de calor das entregas
+GET {{baseUrl}}/dashboard/heatmap?period=month
+Authorization: Bearer {{token}}
+
+###
+
+### Get Route Performance — Desempenho das rotas
+GET {{baseUrl}}/dashboard/routes/performance?period=week
+Authorization: Bearer {{token}}
+
+###############################################################
+# HEALTH CHECK
+###############################################################
+
+###
+
+### API Health — Verificar se a API está online
+GET http://localhost:8000/health
+
+###
+
+### API Version — Versão da API
+GET {{baseUrl}}/version

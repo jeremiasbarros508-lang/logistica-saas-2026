@@ -1,0 +1,875 @@
+{
+  "info": {
+    "name": "Logística SaaS 2026",
+    "description": "Collection completa da API do SaaS de Roteirização Logística.\n\n## Como usar\n1. Importe este arquivo no Postman\n2. Crie um environment chamado `Local` com:\n   - `baseUrl`: `http://localhost:8000/api/v1`\n   - `token`: (deixar em branco — preenchido automaticamente pelo script de login)\n3. Execute o request **Login** — o token é salvo automaticamente\n4. Execute os demais requests\n\n## Credenciais de Teste\n- Admin: `admin@techlogistics.com` / `Admin@123456`\n- Operador: `operador@techlogistics.com` / `Operador@123456`\n\n> Requer seed-data.sql executado previamente.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "companyId",
+      "value": "550e8400-e29b-41d4-a716-446655440000",
+      "type": "string"
+    },
+    {
+      "key": "vehicleId1",
+      "value": "550e8400-e29b-41d4-a716-446655440010",
+      "type": "string"
+    },
+    {
+      "key": "driverId1",
+      "value": "550e8400-e29b-41d4-a716-446655440020",
+      "type": "string"
+    },
+    {
+      "key": "driverId2",
+      "value": "550e8400-e29b-41d4-a716-446655440021",
+      "type": "string"
+    },
+    {
+      "key": "deliveryId1",
+      "value": "550e8400-e29b-41d4-a716-446655440030",
+      "type": "string"
+    },
+    {
+      "key": "deliveryId2",
+      "value": "550e8400-e29b-41d4-a716-446655440031",
+      "type": "string"
+    },
+    {
+      "key": "deliveryId3",
+      "value": "550e8400-e29b-41d4-a716-446655440032",
+      "type": "string"
+    },
+    {
+      "key": "routeId1",
+      "value": "550e8400-e29b-41d4-a716-446655440050",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('token', data.access_token);",
+                  "  pm.collectionVariables.set('refreshToken', data.refresh_token);",
+                  "  console.log('✅ Registered! Token saved.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_name\": \"TechLogistics Inc\",\n  \"email\": \"admin@techlogistics.com\",\n  \"password\": \"Admin@123456\",\n  \"full_name\": \"Administrador TechLogistics\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Cria nova empresa e usuário admin. Retorna JWT token automaticamente salvo na collection."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('token', data.access_token);",
+                  "  pm.collectionVariables.set('refreshToken', data.refresh_token);",
+                  "  console.log('✅ Logged in! Token saved.');",
+                  "  pm.test('Login bem-sucedido', () => pm.response.to.have.status(200));",
+                  "  pm.test('Token recebido', () => pm.expect(data.access_token).to.be.a('string'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@techlogistics.com\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Autentica o usuário e salva o access_token automaticamente para os próximos requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Operador)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"operador@techlogistics.com\",\n  \"password\": \"Operador@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('token', data.access_token);",
+                  "  console.log('✅ Token refreshed!');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏢 Companies",
+      "item": [
+        {
+          "name": "Get Company",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/companies/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["companies", "me"]
+            },
+            "description": "Retorna os dados da empresa do usuário autenticado."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TechLogistics Inc (Atualizado)\",\n  \"settings\": {\n    \"timezone\": \"America/Sao_Paulo\",\n    \"currency\": \"BRL\",\n    \"distance_unit\": \"km\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/companies/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["companies", "me"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📦 Deliveries",
+      "item": [
+        {
+          "name": "List Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deliveries?status=pending&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["deliveries"],
+              "query": [
+                { "key": "status", "value": "pending" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Deliveries (High Priority)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deliveries?priority=high&status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["deliveries"],
+              "query": [
+                { "key": "priority", "value": "high" },
+                { "key": "status", "value": "pending" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Delivery",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deliveries/{{deliveryId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["deliveries", "{{deliveryId1}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Delivery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('newDeliveryId', data.id);",
+                  "  console.log('✅ Delivery created:', data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_name\": \"Empresa Teste Postman\",\n  \"customer_phone\": \"(11) 99000-9999\",\n  \"customer_email\": \"postman@teste.com.br\",\n  \"address\": \"Av. Paulista, 2000 - Bela Vista, São Paulo, SP\",\n  \"latitude\": -23.5630,\n  \"longitude\": -46.6543,\n  \"weight_kg\": 15.0,\n  \"volume_m3\": 0.2,\n  \"priority\": \"medium\",\n  \"notes\": \"Criado via Postman\",\n  \"scheduled_date\": \"2026-02-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["deliveries"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Delivery",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"priority\": \"urgent\",\n  \"notes\": \"Cliente pediu entrega com urgência\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/deliveries/{{deliveryId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["deliveries", "{{deliveryId2}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark as Delivered",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"delivered\",\n  \"notes\": \"Entregue com sucesso. Assinatura recebida.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/deliveries/{{deliveryId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["deliveries", "{{deliveryId1}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Delivery",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/deliveries/{{deliveryId3}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["deliveries", "{{deliveryId3}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🗺️ Routes",
+      "item": [
+        {
+          "name": "List Routes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/routes?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["routes"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Active Routes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/routes?status=in_progress",
+              "host": ["{{baseUrl}}"],
+              "path": ["routes"],
+              "query": [
+                { "key": "status", "value": "in_progress" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Route",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/routes/{{routeId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["routes", "{{routeId1}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Optimized Route ⭐",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('newRouteId', data.id);",
+                  "  console.log(`✅ Route generated! ${data.total_distance_km} km, ~${data.estimated_duration_min} min`);",
+                  "  pm.test('Rota gerada', () => pm.response.to.have.status(201));",
+                  "  pm.test('Tem paradas', () => pm.expect(data.stops).to.be.an('array').with.length.above(0));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driver_id\": \"{{driverId1}}\",\n  \"vehicle_id\": \"{{vehicleId1}}\",\n  \"delivery_ids\": [\n    \"{{deliveryId1}}\",\n    \"{{deliveryId2}}\",\n    \"{{deliveryId3}}\"\n  ],\n  \"start_location\": {\n    \"latitude\": -23.5480,\n    \"longitude\": -46.6565,\n    \"address\": \"Depósito Central — Rua da Consolação, 1000, São Paulo, SP\"\n  },\n  \"optimization\": \"distance\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/routes/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["routes", "generate"]
+            },
+            "description": "Endpoint principal! Gera uma rota otimizada usando Nearest Neighbor + 2-Opt.\n\nParâmetros:\n- `optimization`: `distance` (menor distância) ou `time` (menor tempo)\n- `delivery_ids`: IDs das entregas a incluir na rota"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Route Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/routes/{{routeId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["routes", "{{routeId1}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🚐 Vehicles",
+      "item": [
+        {
+          "name": "List Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Available Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles?status=available",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles"],
+              "query": [
+                { "key": "status", "value": "available" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vehicle",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/{{vehicleId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", "{{vehicleId1}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Van 4\",\n  \"plate\": \"NEW-0001\",\n  \"type\": \"van\",\n  \"capacity_kg\": 900,\n  \"volume_m3\": 7.0,\n  \"fuel_type\": \"flex\",\n  \"fuel_consumption_km_l\": 13.0,\n  \"year\": 2024,\n  \"model\": \"Volkswagen Delivery\",\n  \"color\": \"Azul\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Vehicle",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"maintenance\",\n  \"notes\": \"Revisão programada\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/{{vehicleId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", "{{vehicleId1}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Vehicle",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/{{vehicleId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", "{{vehicleId1}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👨‍✈️ Drivers",
+      "item": [
+        {
+          "name": "List Drivers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/drivers",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Available Drivers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/drivers?status=available",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers"],
+              "query": [
+                { "key": "status", "value": "available" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Driver",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/drivers/{{driverId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "{{driverId1}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Driver",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Ana Rodrigues\",\n  \"email\": \"ana.rodrigues@techlogistics.com\",\n  \"phone\": \"(11) 97654-3210\",\n  \"cnh_number\": \"55544433322\",\n  \"cnh_category\": \"B\",\n  \"cnh_expiry\": \"2029-12-31\",\n  \"notes\": \"Motorista nova\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/drivers",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Driver",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"on_route\",\n  \"current_vehicle_id\": \"{{vehicleId1}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/drivers/{{driverId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "{{driverId1}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Driver",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/drivers/{{driverId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "{{driverId2}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Dashboard",
+      "item": [
+        {
+          "name": "Get Today Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/metrics?period=today",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "metrics"],
+              "query": [
+                { "key": "period", "value": "today" }
+              ]
+            },
+            "description": "KPIs do dia atual: entregas, rotas, veículos, motoristas e performance."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Week Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/metrics?period=week",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "metrics"],
+              "query": [
+                { "key": "period", "value": "week" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Month Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/metrics?period=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "metrics"],
+              "query": [
+                { "key": "period", "value": "month" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Custom Period Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/metrics?date_from=2026-01-01&date_to=2026-01-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "metrics"],
+              "query": [
+                { "key": "date_from", "value": "2026-01-01" },
+                { "key": "date_to", "value": "2026-01-31" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Route Performance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/routes/performance?period=week",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "routes", "performance"],
+              "query": [
+                { "key": "period", "value": "week" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "❤️ Health Check",
+      "item": [
+        {
+          "name": "API Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('API online', () => pm.response.to.have.status(200));",
+                  "console.log('✅ API is up and running!');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["health"]
+            },
+            "description": "Verifica se a API está online. Deve retornar 200 OK."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
