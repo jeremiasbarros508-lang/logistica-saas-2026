@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Shipments Dashboard</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="shipments-list">
+            <!-- Shipments will be dynamically inserted here -->
+        </tbody>
+    </table>
+    <button onclick="createShipment()">Create Shipment</button>
+    <script>
+        function createShipment() {
+            // Implement function to create a new shipment
+            console.log('Creating a new shipment');
+        }
+        function editShipment(id) {
+            // Implement function to edit a shipment
+            console.log('Editing shipment with ID:', id);
+        }
+        function deleteShipment(id) {
+            // Implement function to delete a shipment
+            console.log('Deleting shipment with ID:', id);
+        }
+    </script>
+</body>
+</html>
