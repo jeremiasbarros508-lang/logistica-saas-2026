@@ -6,7 +6,7 @@ from app.utils.exceptions import ValidationError
 class TestCNPJ:
     def test_valid_cnpj_formatted(self):
         result = validate_cnpj("11.222.333/0001-81")
-        assert "." in result or "/" in result
+        assert result == "11.222.333/0001-81"
 
     def test_valid_cnpj_digits_only(self):
         # Known valid CNPJ

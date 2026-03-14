@@ -1,6 +1,6 @@
 import io
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -23,7 +23,7 @@ def generate_pdf_report(route: Route, deliveries: list[Delivery]) -> bytes:
     elements.append(Spacer(1, 12))
     elements.append(
         Paragraph(
-            f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}",
+            f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
             styles["Normal"],
         )
     )

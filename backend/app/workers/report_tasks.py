@@ -44,11 +44,13 @@ def generate_report_task(self, route_id: str, company_id: str, report_format: st
             }
 
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_closed():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        return loop.run_until_complete(_run())
+        return asyncio.run(_run())
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(_run())
+        finally:
+            loop.close()
     except Exception as exc:
         logger.error("generate_report_task failed for route %s: %s", route_id, exc)
         self.retry(exc=exc, countdown=30, max_retries=3)

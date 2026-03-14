@@ -3,7 +3,12 @@ from app.utils.exceptions import ValidationError
 
 
 def validate_cnpj(cnpj: str) -> str:
-    """Validate and normalise a Brazilian CNPJ (digits only accepted too)."""
+    """Validate and format a Brazilian CNPJ (Cadastro Nacional da Pessoa Jurídica).
+
+    Accepts both formatted (XX.XXX.XXX/XXXX-XX) and digits-only (14-digit) strings.
+    Returns the CNPJ formatted as XX.XXX.XXX/XXXX-XX on success.
+    Raises ValidationError if the CNPJ is structurally or algorithmically invalid.
+    """
     digits = re.sub(r"\D", "", cnpj)
     if len(digits) != 14:
         raise ValidationError("CNPJ must have 14 digits")
