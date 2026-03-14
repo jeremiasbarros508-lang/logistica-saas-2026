@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Track Shipment – Tech Logistics{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Track Your Shipment</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('shipments.track') }}">
+                    <div class="input-group">
+                        <input type="text" name="tracking" class="form-control form-control-lg"
+                               placeholder="Enter tracking number…"
+                               value="{{ tracking_number }}" autofocus>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                {% if tracking_number %}
+                <div class="mt-4">
+                    {% if shipment %}
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-check-circle me-2"></i>Shipment Found</h5>
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <th>Tracking #</th>
+                                <td>{{ shipment.tracking_number }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td><span class="badge status-{{ shipment.status }}">{{ shipment.status|replace('_',' ')|title }}</span></td>
+                            </tr>
+                            <tr>
+                                <th>Origin</th>
+                                <td>{{ shipment.origin }}</td>
+                            </tr>
+                            <tr>
+                                <th>Destination</th>
+                                <td>{{ shipment.destination }}</td>
+                            </tr>
+                            <tr>
+                                <th>Est. Delivery</th>
+                                <td>{{ shipment.estimated_delivery.strftime('%d/%m/%Y') if shipment.estimated_delivery else '—' }}</td>
+                            </tr>
+                            {% if shipment.actual_delivery %}
+                            <tr>
+                                <th>Delivered</th>
+                                <td>{{ shipment.actual_delivery.strftime('%d/%m/%Y %H:%M') }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No shipment found for tracking number <strong>{{ tracking_number }}</strong>.
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

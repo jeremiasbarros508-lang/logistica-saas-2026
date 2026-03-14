@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – Tech Logistics{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard</h2>
+    <span class="text-muted">Welcome back, {{ current_user.name }}!</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-primary-subtle text-primary rounded-3 p-3 me-3">
+                        <i class="fas fa-box fa-lg"></i>
+                    </div>
+                    <div>
+                        <div class="fs-2 fw-bold">{{ stats.total_shipments }}</div>
+                        <div class="text-muted small">Total Shipments</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-warning-subtle text-warning rounded-3 p-3 me-3">
+                        <i class="fas fa-clock fa-lg"></i>
+                    </div>
+                    <div>
+                        <div class="fs-2 fw-bold">{{ stats.pending_shipments }}</div>
+                        <div class="text-muted small">Pending</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-info-subtle text-info rounded-3 p-3 me-3">
+                        <i class="fas fa-truck fa-lg"></i>
+                    </div>
+                    <div>
+                        <div class="fs-2 fw-bold">{{ stats.in_transit }}</div>
+                        <div class="text-muted small">In Transit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-success-subtle text-success rounded-3 p-3 me-3">
+                        <i class="fas fa-check-circle fa-lg"></i>
+                    </div>
+                    <div>
+                        <div class="fs-2 fw-bold">{{ stats.delivered_today }}</div>
+                        <div class="text-muted small">Delivered</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Orders</h6>
+                    <a href="{{ url_for('orders.index') }}" class="btn btn-sm btn-outline-primary">View all</a>
+                </div>
+                <div class="fs-1 fw-bold text-primary">{{ stats.total_orders }}</div>
+                <div class="text-muted">{{ stats.new_orders }} new orders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Fleet</h6>
+                    <a href="{{ url_for('fleet.index') }}" class="btn btn-sm btn-outline-primary">View all</a>
+                </div>
+                <div class="fs-1 fw-bold text-success">{{ stats.available_vehicles }}</div>
+                <div class="text-muted">of {{ stats.total_vehicles }} vehicles available</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Shipment Status</h6>
+                </div>
+                <canvas id="statusChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Recent Shipments -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-box me-2"></i>Recent Shipments</h6>
+                <a href="{{ url_for('shipments.new') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i>New
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_shipments %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tracking</th>
+                                <th>Origin</th>
+                                <th>Destination</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in recent_shipments %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('shipments.detail', shipment_id=s.id) }}"
+                                       class="fw-semibold text-decoration-none">
+                                        {{ s.tracking_number }}
+                                    </a>
+                                </td>
+                                <td class="text-truncate" style="max-width:120px">{{ s.origin }}</td>
+                                <td class="text-truncate" style="max-width:120px">{{ s.destination }}</td>
+                                <td>
+                                    <span class="badge status-{{ s.status }}">{{ s.status|replace('_', ' ')|title }}</span>
+                                </td>
+                                <td class="text-muted small">{{ s.created_at.strftime('%d/%m/%Y') if s.created_at }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-box-open fa-2x mb-2"></i>
+                    <p>No shipments yet. <a href="{{ url_for('shipments.new') }}">Create one!</a></p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Recent Orders</h6>
+                <a href="{{ url_for('orders.new') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i>New
+                </a>
+            </div>
+            <div class="list-group list-group-flush">
+                {% if recent_orders %}
+                    {% for order in recent_orders %}
+                    <a href="{{ url_for('orders.detail', order_id=order.id) }}"
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-semibold">{{ order.order_number }}</span>
+                            <span class="badge status-{{ order.status }}">{{ order.status|title }}</span>
+                        </div>
+                        <small class="text-muted">{{ order.customer_name }}</small>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-clipboard fa-2x mb-2"></i>
+                    <p class="small">No orders yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const statusData = {{ stats.status_data | tojson }};
+const labels = Object.keys(statusData).map(s => s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()));
+const values = Object.values(statusData);
+const colors = ['#ffc107', '#0dcaf0', '#198754', '#dc3545', '#6c757d', '#0d6efd'];
+
+const ctx = document.getElementById('statusChart');
+if (ctx && values.length > 0) {
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12 } }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit' if vehicle else 'Add' }} Vehicle – Tech Logistics{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-{{ 'edit' if vehicle else 'plus' }} me-2"></i>
+                    {{ 'Edit Vehicle' if vehicle else 'Add Vehicle' }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post"
+                      action="{{ url_for('fleet.edit', vehicle_id=vehicle.id) if vehicle else url_for('fleet.new') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">License Plate <span class="text-danger">*</span></label>
+                            <input type="text" name="plate" class="form-control text-uppercase" required
+                                   value="{{ vehicle.plate if vehicle else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Brand</label>
+                            <input type="text" name="brand" class="form-control"
+                                   value="{{ vehicle.brand if vehicle else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Model</label>
+                            <input type="text" name="model" class="form-control"
+                                   value="{{ vehicle.model if vehicle else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Year</label>
+                            <input type="number" name="year" class="form-control" min="1900" max="2030"
+                                   value="{{ vehicle.year if vehicle and vehicle.year else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Capacity (kg)</label>
+                            <input type="number" name="capacity_kg" class="form-control" step="0.1" min="0"
+                                   value="{{ vehicle.capacity_kg if vehicle and vehicle.capacity_kg else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Capacity (m³)</label>
+                            <input type="number" name="capacity_m3" class="form-control" step="0.01" min="0"
+                                   value="{{ vehicle.capacity_m3 if vehicle and vehicle.capacity_m3 else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Driver Name</label>
+                            <input type="text" name="driver_name" class="form-control"
+                                   value="{{ vehicle.driver_name if vehicle else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Driver Phone</label>
+                            <input type="tel" name="driver_phone" class="form-control"
+                                   value="{{ vehicle.driver_phone if vehicle else '' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Notes</label>
+                            <textarea name="notes" class="form-control" rows="2">{{ vehicle.notes if vehicle else '' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="mt-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            {{ 'Update' if vehicle else 'Add' }} Vehicle
+                        </button>
+                        <a href="{{ url_for('fleet.detail', vehicle_id=vehicle.id) if vehicle else url_for('fleet.index') }}"
+                           class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
